@@ -289,21 +289,79 @@ test/fixtures/*.trace.json  the sanitized traces
 
 ## Install
 
+### TL;DR
+
 ```sh
-# 1. install the package into a profile (adds it to dsh.profile.bundles; the
-#    bundle patch is intentionally empty - the row swap is step 2)
+# 1. install the plugin into a profile
 dsh plugin --profile web add github:DoctorxPriestess/dsh-cache-safe-tool-result
 
-# or, from a local checkout:
-dsh plugin --profile web add /path/to/dsh-cache-safe-tool-result
+# 2. wire the profile (this is the load-bearing step) - from the installed package
+cd "$DSH_HOME/profiles/web/node_modules/dsh-cache-safe-tool-result"
+node tools/install-preset.mjs --profile web
+
+# 3. restart dsh, then confirm what it composed
+dsh --profile web --dump-config
 ```
 
+### Step 1 — install the plugin into a profile
+
+`dsh plugin` is a thin `pnpm` forwarder: it initializes the profile on first use,
+runs the forwarded pnpm arguments in `<DSH_HOME>/profiles/<name>`, then reconciles
+`dsh.profile.bundles` against what is actually installed.
+
 ```sh
-# 2. wire the profile (this is the load-bearing step)
-node tools/install-preset.mjs --list
+# the common case: the web profile
+dsh plugin --profile web add github:DoctorxPriestess/dsh-cache-safe-tool-result
+
+# another profile
+dsh plugin --profile tui add github:DoctorxPriestess/dsh-cache-safe-tool-result
+
+# from a local checkout (a relative path is anchored to YOUR cwd, not the profile)
+dsh plugin --profile web add /path/to/dsh-cache-safe-tool-result
+
+# pin a version
+dsh plugin --profile web add github:DoctorxPriestess/dsh-cache-safe-tool-result#v1.0.0
+```
+
+The package is installed as a dependency of the profile and appended to
+`dsh.profile.bundles` (`@deepseek-ai/dsh-base`, `@deepseek-ai/dsh-web-app`, …,
+`dsh-cache-safe-tool-result`). Confirm with:
+
+```sh
+dsh --profile web --dump-config
+```
+
+The bundle patch this package ships is intentionally an empty list, so installing
+it changes nothing on its own — step 2 is what swaps the provider row.
+
+### Step 2 — wire the profile
+
+```sh
+# the installer ships inside the package; run it from there
+cd "$DSH_HOME/profiles/web/node_modules/dsh-cache-safe-tool-result"
+
+node tools/install-preset.mjs --list              # which profiles exist
 node tools/install-preset.mjs --profile web --dry-run
 node tools/install-preset.mjs --profile web
 ```
+
+From a checkout instead of an install, the same command works — the row simply
+names the checkout you wired:
+
+```sh
+node tools/install-preset.mjs --profile web
+```
+
+Uninstall reverses both steps:
+
+```sh
+node tools/install-preset.mjs --profile web --revert
+dsh plugin --profile web remove dsh-cache-safe-tool-result
+```
+
+`--preset <name>` is accepted as a synonym of `--profile` for convenience, but it
+targets a profile, not an agent preset — the provider row lives in the profile
+composition (see "Where the provider row really lives" above).
 
 Step 2 edits `<DSH_HOME>/profiles/web/cordis.patch.yml`, appending exactly two
 entries and leaving everything else - including any patch entries you already
@@ -344,6 +402,10 @@ checkout by absolute path so the row always points at the code you can read and
 edit, and so a checkout copy and an installed copy cannot silently diverge.
 Absolute paths are supported and converted to file URLs internally, including
 Windows drive letters.
+
+> To point the row at the **installed** copy instead (for example so a later
+> `dsh plugin --profile web update` is what you run), pass `--entry`:
+> `node tools/install-preset.mjs --profile web --entry "$DSH_HOME/profiles/web/node_modules/dsh-cache-safe-tool-result/src/both.js"`
 
 ## Configuration
 

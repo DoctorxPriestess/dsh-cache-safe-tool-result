@@ -257,21 +257,77 @@ test/fixtures/*.trace.json  脱敏轨迹
 
 ## 安装
 
+### 速览
+
 ```sh
-# 1. 把包装进某个 profile（会写入 dsh.profile.bundles；bundle patch 刻意留空，
-#    行替换是第 2 步）
+# 1. 把插件装进某个 profile
 dsh plugin --profile web add github:DoctorxPriestess/dsh-cache-safe-tool-result
 
-# 或者从本地 checkout 安装：
-dsh plugin --profile web add /path/to/dsh-cache-safe-tool-result
+# 2. 接线到 profile（这是真正起作用的一步）——在已安装的包目录里执行
+cd "$DSH_HOME/profiles/web/node_modules/dsh-cache-safe-tool-result"
+node tools/install-preset.mjs --profile web
+
+# 3. 重启 dsh，然后确认它实际组合出的内容
+dsh --profile web --dump-config
 ```
 
+### 第 1 步：把插件装进某个 profile
+
+`dsh plugin` 是一个很薄的 `pnpm` 转发器：首次使用时初始化 profile，在
+`<DSH_HOME>/profiles/<name>` 里执行转发过去的 pnpm 参数，然后按"实际装上了什么"来
+对账 `dsh.profile.bundles`。
+
 ```sh
-# 2. 接线到 profile（这是真正起作用的一步）
-node tools/install-preset.mjs --list
+# 常见情况：web profile
+dsh plugin --profile web add github:DoctorxPriestess/dsh-cache-safe-tool-result
+
+# 别的 profile
+dsh plugin --profile tui add github:DoctorxPriestess/dsh-cache-safe-tool-result
+
+# 从本地 checkout 安装（相对路径以"你当前所在目录"为基准，而不是 profile 目录）
+dsh plugin --profile web add /path/to/dsh-cache-safe-tool-result
+
+# 锁定版本
+dsh plugin --profile web add github:DoctorxPriestess/dsh-cache-safe-tool-result#v1.0.0
+```
+
+包装为 profile 的一个依赖，并被追加进 `dsh.profile.bundles`
+（`@deepseek-ai/dsh-base`、`@deepseek-ai/dsh-web-app`、…、
+`dsh-cache-safe-tool-result`）。用下面这条确认：
+
+```sh
+dsh --profile web --dump-config
+```
+
+本包自带的 bundle patch 刻意是空列表，所以"只装包"不会改变任何行为——真正替换
+provider 行的是第 2 步。
+
+### 第 2 步：接线到 profile
+
+```sh
+# 安装器随包发布，直接在包目录里运行
+cd "$DSH_HOME/profiles/web/node_modules/dsh-cache-safe-tool-result"
+
+node tools/install-preset.mjs --list              # 有哪些 profile
 node tools/install-preset.mjs --profile web --dry-run
 node tools/install-preset.mjs --profile web
 ```
+
+如果你用的是 checkout 而不是安装副本，命令完全一样——只是那一行会指向你 checkout 的路径：
+
+```sh
+node tools/install-preset.mjs --profile web
+```
+
+卸载就是反过来做这两步：
+
+```sh
+node tools/install-preset.mjs --profile web --revert
+dsh plugin --profile web remove dsh-cache-safe-tool-result
+```
+
+为了方便，`--preset <name>` 被接受为 `--profile` 的同义词；但它操作的是 **profile**，
+不是 agent preset——provider 行位于 profile 组合里（见上文"provider 行到底在哪里"）。
 
 第 2 步会编辑 `<DSH_HOME>/profiles/web/cordis.patch.yml`，只追加两个 entry，
 其他内容——包括你自己原本放在那里的 patch entry——一律不动：
@@ -292,7 +348,7 @@ node tools/install-preset.mjs --profile web
 node tools/install-preset.mjs --profile web --revert
 ```
 
-任一步之后都重启 `dsh`。可以用下面这条确认 harness 实际组合出的内容：
+第 1 步与第 2 步之后都重启 `dsh`。可以用下面这条确认 harness 实际组合出的内容：
 
 ```sh
 dsh --profile web --dump-config
@@ -307,6 +363,10 @@ profile bundle 层里的裸包名会从 harness 安装位置（或 profile 的 `
 本插件是通过 `dsh plugin add` 安装的，所以按包名也能解析到——但安装器选择用绝对路径指向
 checkout，这样这一行永远指向你可读可改的那份代码，checkout 副本与已安装副本也不会悄悄
 分叉。绝对路径受支持，内部会转成 file URL（含 Windows 盘符路径）。
+
+> 如果希望它指向**已安装副本**（例如你后续用 `dsh plugin ... update` 升级），把
+> `--entry` 指过去即可：
+> `node tools/install-preset.mjs --profile web --entry "$DSH_HOME/profiles/web/node_modules/dsh-cache-safe-tool-result/src/both.js"`
 
 ## 配置
 
