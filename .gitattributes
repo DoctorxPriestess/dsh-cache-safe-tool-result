@@ -1,0 +1,10 @@
+# Normalise the repository to LF so the code, fixtures and docs read identically
+# on every platform; Windows checkouts are converted on the way out by
+# core.autocrlf.
+* text=auto eol=lf
+
+# Binary fixtures and archives must never be line-ending converted.
+*.png binary
+*.jpg binary
+*.zip binary
+*.zstd binary

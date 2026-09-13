@@ -1,0 +1,24 @@
+# Test and editor noise
+node_modules/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# DSH runtime state: sessions, logs and credentials never belong in this repo.
+.dsh/
+sessions/
+*.session.json
+*.session.jsonl
+credentials.json
+auth.json
+
+# Preset installs made by tools/install-preset.mjs
+*.bak
+agent.cordis.yml.*.bak
+
+# Local scratch
+tmp/
+temp/
+*.local.json

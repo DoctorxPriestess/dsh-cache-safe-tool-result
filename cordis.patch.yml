@@ -1,0 +1,28 @@
+# dsh-cache-safe-tool-result bundle patch.
+#
+# This file is loaded as a profile layer because package.json declares
+# `dsh.bundle.patch` (see the DSH plugin guide: `dsh plugin --profile web add
+# <this checkout>` installs the package and appends it to the profile's
+# `dsh.profile.bundles`).
+#
+# WHY IT IS EMPTY
+# ---------------
+# A patch entry can only target a row that exists in the PROFILE composition.
+# The row this plugin has to replace - `tool-result-pruner`, which provides the
+# `toolResultPruner` service - is not there: it lives in an AGENT PRESET
+# (`<DSH_HOME>/.agent-presets/<preset>/agent.cordis.yml`), which
+# `dsh-agent-presets` mounts as its own tree and never exposes to the profile's
+# patch layer.
+#
+# So there is nothing safe for this file to patch, and inventing a row here
+# would mount a second, scope-unreachable pruner. The row swap belongs in the
+# preset, and `tools/install-preset.mjs` performs it in place, idempotently and
+# reversibly:
+#
+#   node tools/install-preset.mjs --list
+#   node tools/install-preset.mjs --preset coder --dry-run
+#   node tools/install-preset.mjs --preset coder
+#
+# An empty patch list is a valid layer, so installing this bundle is harmless on
+# its own; wiring the preset is the second, explicit step.
+[]

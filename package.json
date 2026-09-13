@@ -1,0 +1,61 @@
+{
+  "name": "dsh-cache-safe-tool-result",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Keep DSH tool results cache-prefix safe: truncate a result before it first enters the session surface, and never rewrite a tool result a provider request has already delivered.",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./both": "./src/both.js",
+    "./guarded-pruner": "./src/guarded-pruner.js",
+    "./truncate": "./src/truncate.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "tools/install-preset.mjs",
+    "tools/session-report.mjs",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
+    "test:unit": "node --test \"test/unit/*.test.js\"",
+    "test:integration": "node --test \"test/integration/*.test.js\"",
+    "test:regression": "node --test \"test/regression/*.test.js\"",
+    "check": "node --check src/index.js && node --check src/truncate.js && node --check src/guarded-pruner.js && node --check src/both.js && node --check tools/install-preset.mjs",
+    "install:preset": "node tools/install-preset.mjs"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "dsh-bundle",
+    "cordis",
+    "tool-result",
+    "prompt-cache",
+    "kv-cache",
+    "compaction"
+  ],
+  "license": "MIT",
+  "author": "DoctorxPriestess",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DoctorxPriestess/dsh-cache-safe-tool-result.git"
+  },
+  "homepage": "https://github.com/DoctorxPriestess/dsh-cache-safe-tool-result#readme",
+  "bugs": {
+    "url": "https://github.com/DoctorxPriestess/dsh-cache-safe-tool-result/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
