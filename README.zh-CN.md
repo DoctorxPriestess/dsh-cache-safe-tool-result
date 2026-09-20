@@ -1,4 +1,5 @@
 # dsh-cache-safe-tool-result
+[![Listed on dsh-plugin.org](https://dsh-plugin.org/badges/listed.svg)](https://dsh-plugin.org/plugins/doctorxpriestess/dsh-cache-safe-tool-result)
 
 一个 DeepSeek Harness (DSH) 插件：让工具结果（tool result）保持**缓存前缀安全**。
 
