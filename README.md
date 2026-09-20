@@ -1,4 +1,5 @@
 # dsh-cache-safe-tool-result
+[![Listed on dsh-plugin.org](https://dsh-plugin.org/badges/listed.svg)](https://dsh-plugin.org/plugins/doctorxpriestess/dsh-cache-safe-tool-result)
 
 A DeepSeek Harness (DSH) plugin that keeps tool results **cache-prefix safe**.
 
